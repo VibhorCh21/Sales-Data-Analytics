@@ -1,5 +1,6 @@
 
 import os
+import streamlit as st
 import pandas as pd
 from pathlib import Path
 
@@ -8,20 +9,40 @@ from sqlalchemy import create_engine, text, MetaData, Table, Column
 from sqlalchemy import String, BigInteger, DateTime, Numeric, Float
 from sqlalchemy.engine import URL
 
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+# Read credentials from Streamlit Cloud Secrets or local .env
+try:
+    db_config = {
+        "username": st.secrets["NEON_DB_USER"],
+        "password": st.secrets["NEON_DB_PASSWORD"],
+        "host": st.secrets["NEON_DB_HOST"],
+        "port": int(st.secrets.get("NEON_DB_PORT", "5432")),
+        "database": st.secrets["NEON_DB_NAME"],
+    }
+except Exception:
+    db_config = {
+        "username": os.getenv("NEON_DB_USER"),
+        "password": os.getenv("NEON_DB_PASSWORD"),
+        "host": os.getenv("NEON_DB_HOST"),
+        "port": int(os.getenv("NEON_DB_PORT", "5432")),
+        "database": os.getenv("NEON_DB_NAME"),
+    }
+
 DATABASE_URL = URL.create(
     drivername="postgresql+psycopg2",
-    username=os.getenv("NEON_DB_USER"),
-    password=os.getenv("NEON_DB_PASSWORD"),
-    host=os.getenv("NEON_DB_HOST"),
-    port=int(os.getenv("NEON_DB_PORT", "5432")),
-    database=os.getenv("NEON_DB_NAME"),
+    username=db_config["username"],
+    password=db_config["password"],
+    host=db_config["host"],
+    port=db_config["port"],
+    database=db_config["database"],
     query={"sslmode": "require"}
 )
 
 engine = create_engine(DATABASE_URL)
+
 metadata = MetaData()
 
 sales_table = Table(
