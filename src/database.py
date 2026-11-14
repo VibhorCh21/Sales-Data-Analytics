@@ -13,11 +13,12 @@ load_dotenv(BASE_DIR / ".env")
 
 DATABASE_URL = URL.create(
     drivername="postgresql+psycopg2",
-    username=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
-    host=os.getenv("DB_HOST"),
-    port=int(os.getenv("DB_PORT")),
-    database=os.getenv("DB_NAME"),
+    username=os.getenv("NEON_DB_USER"),
+    password=os.getenv("NEON_DB_PASSWORD"),
+    host=os.getenv("NEON_DB_HOST"),
+    port=int(os.getenv("NEON_DB_PORT", "5432")),
+    database=os.getenv("NEON_DB_NAME"),
+    query={"sslmode": "require"}
 )
 
 engine = create_engine(DATABASE_URL)
@@ -44,6 +45,16 @@ def test_connection():
             print(result.scalar())
     except Exception as error:
         print("Database connection failed:", error)
+
+def test_neon_connection():
+    try:
+        with engine.connect() as connection:
+            result = connection.execute(text("SELECT version();"))
+            print("Neon database connected successfully!")
+            print(result.scalar())
+    except Exception as error:
+        print("Neon connection failed:", error)
+
 
 
 def load_sales_to_database():
