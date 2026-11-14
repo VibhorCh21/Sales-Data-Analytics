@@ -29,12 +29,52 @@ st.divider()
 
 # Fetch data from PostgreSQL
 @st.cache_data(ttl=300)
-def load_data(query):
+def load_data(query, params=None):
     with engine.connect() as connection:
-        return pd.read_sql(text(query), connection)
+        return pd.read_sql(
+            text(query),
+            connection,
+            params=params
+        )
 
 
 try:
+    # Date range filter
+    st.sidebar.header("📅 Date Filter")
+
+    date_query = """
+        SELECT
+            MIN("InvoiceDate") AS min_date,
+            MAX("InvoiceDate") AS max_date
+        FROM sales;
+    """
+
+    date_limits = load_data(date_query).iloc[0]
+
+    start_date = st.sidebar.date_input(
+        "Start Date",
+        value=date_limits["min_date"].date(),
+        min_value=date_limits["min_date"].date(),
+        max_value=date_limits["max_date"].date()
+    )
+
+    end_date = st.sidebar.date_input(
+        "End Date",
+        value=date_limits["max_date"].date(),
+        min_value=date_limits["min_date"].date(),
+        max_value=date_limits["max_date"].date()
+    )
+
+    if start_date > end_date:
+        st.error("Start Date cannot be after End Date.")
+        st.stop()
+
+    # Common date parameters
+    date_params = {
+        "start_date": start_date,
+        "end_date": end_date
+    }
+
     # Business overview
     summary_query = """
         SELECT
@@ -42,10 +82,12 @@ try:
             COUNT(DISTINCT "InvoiceNo") AS total_orders,
             COUNT(DISTINCT "CustomerID") AS total_customers,
             COUNT(DISTINCT "StockCode") AS total_products
-        FROM sales;
+        FROM sales
+        WHERE "InvoiceDate" >= :start_date
+          AND "InvoiceDate" < (:end_date + INTERVAL '1 day');
     """
 
-    summary = load_data(summary_query).iloc[0]
+    summary = load_data(summary_query, date_params).iloc[0]
 
     st.subheader("Business Overview")
 
@@ -66,15 +108,19 @@ try:
             DATE_TRUNC('month', "InvoiceDate") AS month,
             SUM("Revenue") AS revenue
         FROM sales
+        WHERE "InvoiceDate" >= :start_date
+          AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
         GROUP BY month
         ORDER BY month;
     """
 
-    monthly_data = load_data(monthly_query)
+    monthly_data = load_data(monthly_query, date_params)
 
     if not monthly_data.empty:
         monthly_data = monthly_data.set_index("month")
         st.line_chart(monthly_data["revenue"])
+    else:
+        st.info("No sales data available for the selected dates.")
 
     st.divider()
 
@@ -86,17 +132,21 @@ try:
             "Description",
             SUM("Revenue") AS revenue
         FROM sales
+        WHERE "InvoiceDate" >= :start_date
+          AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
         GROUP BY "Description"
         ORDER BY revenue DESC
         LIMIT 10;
     """
 
-    products_data = load_data(products_query)
+    products_data = load_data(products_query, date_params)
 
     if not products_data.empty:
         st.bar_chart(
             products_data.set_index("Description")["revenue"]
         )
+    else:
+        st.info("No product data available for the selected dates.")
 
     st.divider()
 
@@ -108,22 +158,23 @@ try:
             "Country",
             SUM("Revenue") AS revenue
         FROM sales
+        WHERE "InvoiceDate" >= :start_date
+          AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
         GROUP BY "Country"
         ORDER BY revenue DESC
         LIMIT 10;
     """
 
-    countries_data = load_data(countries_query)
+    countries_data = load_data(countries_query, date_params)
 
     if not countries_data.empty:
         st.bar_chart(
             countries_data.set_index("Country")["revenue"]
         )
+    else:
+        st.info("No country data available for the selected dates.")
 
     st.success("Dashboard connected to PostgreSQL successfully!")
 
-except Exception:
-    st.error(
-        "Unable to load dashboard data. "
-        "Please check your database connection and table structure."
-    )
+except Exception as error:
+    st.error(f"Unable to load dashboard data: {error}")
