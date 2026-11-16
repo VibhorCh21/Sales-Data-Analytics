@@ -41,8 +41,17 @@ DATABASE_URL = URL.create(
     query={"sslmode": "require"}
 )
 
-engine = create_engine(DATABASE_URL)
-
+engine = create_engine(
+    DATABASE_URL,
+    pool_pre_ping=True,
+    pool_recycle=300,
+    pool_size=5,
+    max_overflow=2,
+    connect_args={
+        "sslmode": "require",
+        "connect_timeout": 30
+    }
+)
 metadata = MetaData()
 
 sales_table = Table(
