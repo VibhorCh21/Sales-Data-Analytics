@@ -37,7 +37,7 @@ These screenshots show the dashboard using the full available date range in the 
 
 **Top products by revenue**
 
-![Top 10 Products by Revenue](screenshots/top-products.png)
+![Top 10 Products by Revenue](screenshots/top-products-clean.png)
 
 **Country sales performance**
 
