@@ -263,70 +263,71 @@ try:
 
         st.divider()
 
-    # Executive Business Highlights
-    st.divider()
-    st.subheader("💡 Executive Business Highlights")
+    
 
-    highlights_query = """
-        SELECT
-            (
-                SELECT "Description"
-                FROM sales
-                WHERE "InvoiceDate" >= :start_date
-                  AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
-                  AND "Description" IS NOT NULL
-                GROUP BY "Description"
-                ORDER BY SUM("Revenue") DESC
-                LIMIT 1
-            ) AS top_product,
+        # Executive Business Highlights
+        st.divider()
+        st.subheader("💡 Executive Business Highlights")
 
-            (
-                SELECT "Country"
-                FROM sales
-                WHERE "InvoiceDate" >= :start_date
-                  AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
-                GROUP BY "Country"
-                ORDER BY SUM("Revenue") DESC
-                LIMIT 1
-            ) AS top_country,
+        highlights_query = """
+            SELECT
+                (
+                    SELECT "Description"
+                    FROM sales
+                    WHERE "InvoiceDate" >= :start_date
+                      AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
+                      AND "Description" IS NOT NULL
+                    GROUP BY "Description"
+                    ORDER BY SUM("Revenue") DESC
+                    LIMIT 1
+                ) AS top_product,
+                (
+                    SELECT "Country"
+                    FROM sales
+                    WHERE "InvoiceDate" >= :start_date
+                      AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
+                    GROUP BY "Country"
+                    ORDER BY SUM("Revenue") DESC
+                    LIMIT 1
+                ) AS top_country,
+                (
+                    SELECT TO_CHAR("InvoiceDate", 'FMDay')
+                    FROM sales
+                    WHERE "InvoiceDate" >= :start_date
+                      AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
+                    GROUP BY
+                        EXTRACT(DOW FROM "InvoiceDate"),
+                        TO_CHAR("InvoiceDate", 'FMDay')
+                    ORDER BY SUM("Revenue") DESC
+                    LIMIT 1
+                ) AS best_sales_day
+        """
 
-            (
-                SELECT TO_CHAR("InvoiceDate", 'FMDay')
-                FROM sales
-                WHERE "InvoiceDate" >= :start_date
-                  AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
-                GROUP BY
-                    EXTRACT(DOW FROM "InvoiceDate"),
-                    TO_CHAR("InvoiceDate", 'FMDay')
-                ORDER BY SUM("Revenue") DESC
-                LIMIT 1
-            ) AS best_sales_day
-    """
-
-    highlights_data = load_data(
-        highlights_query,
-        date_params
-    )
-
-    if not highlights_data.empty:
-        highlights = highlights_data.iloc[0]
-
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric(
-            "🏆 Top Product",
-            highlights["top_product"] or "N/A"
+        highlights_data = load_data(
+            highlights_query,
+            date_params
         )
 
-        col2.metric(
-            "🌍 Leading Country",
-            highlights["top_country"] or "N/A"
-        )
+        if not highlights_data.empty:
+            highlights = highlights_data.iloc[0]
 
-        col3.metric(
-            "📅 Best Sales Day",
-            highlights["best_sales_day"] or "N/A"
-        )
+            col1, col2, col3 = st.columns(3)
+
+            col1.metric(
+                "🏆 Top Product",
+                highlights["top_product"] or "N/A"
+            )
+
+            col2.metric(
+                "🌍 Leading Country",
+                highlights["top_country"] or "N/A"
+            )
+
+            col3.metric(
+                "📅 Best Sales Day",
+                highlights["best_sales_day"] or "N/A"
+            )
+
 
     with customer_tab:
         # Top 10 customers
@@ -490,9 +491,8 @@ try:
                     COUNT(DISTINCT "InvoiceNo") AS frequency,
                     SUM("Revenue") AS monetary
                 FROM sales
-                WHERE "InvoiceDate" >= :start_date
-                  AND "InvoiceDate" < (:end_date + INTERVAL '1 day')
-                  AND "CustomerID" IS NOT NULL
+                WHERE "InvoiceDate" < (:end_date + INTERVAL '1 day')
+                AND "CustomerID" IS NOT NULL
                 GROUP BY "CustomerID"
             ),
             rfm_scores AS (
@@ -540,7 +540,10 @@ try:
         """
 
 
-        rfm_data = load_data(rfm_query, date_params)
+        rfm_data = load_data(
+        rfm_query,
+        {"end_date": end_date}
+            )  
 
         if not rfm_data.empty:
             st.dataframe(
