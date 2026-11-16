@@ -13,7 +13,7 @@ These screenshots show the dashboard using the full available date range in the 
 
 ### Overview
 
-![Sales Analytics Dashboard Overview](screenshots/overview.png)
+![Sales Analytics Dashboard Overview](screenshots/overview-clean.png)
 
 ### Customer Analytics
 
