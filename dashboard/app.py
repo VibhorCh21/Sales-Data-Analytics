@@ -38,9 +38,11 @@ st.markdown("""
     }
 
     [data-testid="stMetricValue"] {
-        color: #00A86B;
-        font-weight: 700;
-    }
+    color: #00A86B;
+    font-weight: 700;
+    font-size: 1.15rem !important;
+    white-space: nowrap;
+}
 
     .stButton button,
     .stDownloadButton button {
@@ -216,20 +218,48 @@ try:
             if summary["total_orders"] > 0
             else 0
         )
-
+        revenue_display = (
+            f"£{summary['total_revenue'] / 1_000_000:.2f}M"
+            if summary["total_revenue"] >= 1_000_000
+            else f"£{summary['total_revenue'] / 1_000:.1f}K"
+            if summary["total_revenue"] >= 1_000
+            else f"£{summary['total_revenue']:,.2f}"
+        )
+        
         # Display KPI metrics
-        col1, col2, col3, col4, col5 = st.columns(5)
+
+        # First row: Revenue and Orders
+        col1, col2 = st.columns([2, 1])
 
         col1.metric(
             "Total Revenue",
             f"£{summary['total_revenue']:,.2f}",
-            delta=f"{revenue_growth:+.2f}%" if revenue_growth is not None else "N/A"
+            delta=f"{revenue_growth:+.2f}%" if revenue_growth is not None else None
         )
 
-        col2.metric("Total Orders", f"{int(summary['total_orders']):,}")
-        col3.metric("Total Customers", f"{int(summary['total_customers']):,}")
-        col4.metric("Total Products", f"{int(summary['total_products']):,}")
-        col5.metric("Average Order Value", f"£{average_order_value:,.2f}")
+        col2.metric(
+            "Total Orders",
+            f"{int(summary['total_orders']):,}"
+        )
+
+        # Second row: Customers, Products and AOV
+        col3, col4, col5 = st.columns(3)
+
+        col3.metric(
+            "Total Customers",
+            f"{int(summary['total_customers']):,}"
+        )
+
+        col4.metric(
+            "Total Products",
+            f"{int(summary['total_products']):,}"
+        )
+
+        col5.metric(
+            "Average Order Value",
+            f"£{average_order_value:,.2f}"
+        )
+
 
         st.divider()
 
