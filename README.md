@@ -19,8 +19,7 @@ These screenshots show the dashboard using the full available date range in the 
 
 **Top 10 customers**
 
-![Top 10 Customers by Revenue](screenshots/top-customers.png)
-
+![Top 10 Customers by Revenue](screenshots/top-customers-clean.png)
 **Customer segmentation**
 
 ![Customer Segmentation](screenshots/customer-segmentation.png)
