@@ -22,7 +22,7 @@ These screenshots show the dashboard using the full available date range in the 
 ![Top 10 Customers by Revenue](screenshots/top-customers-clean.png)
 **Customer segmentation**
 
-![Customer Segmentation](screenshots/customer-segmentation.png)
+![Customer Segmentation](screenshots/customer-segmentation-clean.png)
 
 **Purchase frequency**
 
