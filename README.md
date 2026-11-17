@@ -30,7 +30,7 @@ These screenshots show the dashboard using the full available date range in the 
 
 **RFM analysis**
 
-![RFM Customer Analysis](screenshots/rfm-analysis.png)
+![RFM Customer Analysis](screenshots/rfm-analysis-clean.png)
 
 ### Sales Insights
 
