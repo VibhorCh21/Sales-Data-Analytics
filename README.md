@@ -40,7 +40,7 @@ These screenshots show the dashboard using the full available date range in the 
 
 **Country sales performance**
 
-![Top 10 Countries by Revenue](screenshots/top-countries.png)
+![Top 10 Countries by Revenue](screenshots/top-countries-clean.png)
 
 ## What the project does
 
