@@ -26,7 +26,7 @@ These screenshots show the dashboard using the full available date range in the 
 
 **Purchase frequency**
 
-![Customer Purchase Frequency](screenshots/customer-purchase-frequency.png)
+![Customer Purchase Frequency](screenshots/customer-purchase-frequency-clean.png)
 
 **RFM analysis**
 
